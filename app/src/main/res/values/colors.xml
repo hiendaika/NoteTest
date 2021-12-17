@@ -9,9 +9,10 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="bg_dashboard">#F6F6F6</color>
-    <color name="bg_item_note">#333333</color>
+    <color name="bg_item_note">#ECECEC</color>
     <color name="bg_bottom">@color/white</color>
     <color name="bg_icon">#626262</color>
     <color name="color_title">#7B7B7B</color>
     <color name="color_description">#B5B5B5</color>
+    <color name="bg_text_search">@color/bg_item_note</color>
 </resources>

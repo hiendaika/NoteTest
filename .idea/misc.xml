@@ -3,7 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Data/SuperNotes/app/src/main/res/drawable/bg_search_text.xml" value="0.2828125" />
         <entry key="..\:/Data/SuperNotes/app/src/main/res/layout/activity_main.xml" value="0.223731884057971" />
+        <entry key="..\:/Data/SuperNotes/app/src/main/res/layout/fragment_dashboard.xml" value="0.24094202898550723" />
       </map>
     </option>
   </component>

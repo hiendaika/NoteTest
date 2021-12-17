@@ -6,4 +6,5 @@
     <color name="bg_icon">#737373</color>
     <color name="color_title">#FFFFFF</color>
     <color name="color_description">#5B5B5B</color>
+    <color name="bg_text_search">@color/bg_item_note</color>
 </resources>

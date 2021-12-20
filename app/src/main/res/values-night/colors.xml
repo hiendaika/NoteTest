@@ -7,4 +7,6 @@
     <color name="color_title">#FFFFFF</color>
     <color name="color_description">#5B5B5B</color>
     <color name="bg_text_search">@color/bg_item_note</color>
+    <color name="color_button_add">#FFBD3D</color>
+    <color name="color_tint_button_add">#3E392E</color>
 </resources>

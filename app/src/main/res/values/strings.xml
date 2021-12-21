@@ -7,4 +7,5 @@
     <string name="add_note">Add note</string>
     <string name="text_note_empty_title">Notes empty</string>
     <string name="text_transaction_empty_desc">Notes is empty</string>
+    <string name="detail">Detail</string>
 </resources>

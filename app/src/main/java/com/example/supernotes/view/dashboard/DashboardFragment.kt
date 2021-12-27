@@ -51,7 +51,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding, DashBoardViewMo
             }
 
             btnTakePhoto.setOnClickListener {
-                activity?.toast("Take p")
+                activity?.toast("Take photo")
             }
         }
     }

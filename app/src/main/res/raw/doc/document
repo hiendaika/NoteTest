@@ -99,3 +99,34 @@ c. Rx
                 // get được userDetail
             })
     }
+- Su dung rx kha ngan gon nhung thu vien Rx kha lon va kha kho su dung voi nhung ng moi
+
+d. Kotlin Couroutine
+    fun getTokenAndLogin() {
+    // launch a coroutine
+        GlobalScope.launch {
+            val token = getToken() // hàm getToken() này được chạy bất đồng bộ
+            login(token)           // thế nhưng cách viết code lại giống như đang viết code đồng bộ (code từ trên xuống)
+        }
+    }
+
+    suspend fun getToken(): String {
+        // makes a request and suspends the coroutine
+        return suspendCoroutine {
+            // handle and return token
+            it.resume("AdfGhhafHfjjryJjrtthhhFbgyhJjrhhBfrhghrjjyGHj")
+        }
+    }
+
+    private fun login(token: String) {
+        // TODO login with token
+    }
+- Ưu điểm của coroutine:
++ Về cơ bản có thể hiểu coroutine như là 1 light-weight thread, nhưng nó không phải 1 thread, chúng chỉ hoạt động tương tự
+như 1 thread.
++ Hàng nghìn coroutine co the duoc chay cùng 1 lúc, còn nếu hàng ngàn thread chạy cùng 1 lúc thì sẽ gây ảnh hưởng đến hiệu suất
+của ứng dụng, cái giá phải trả sẽ là rất đắt.
+- Việc code xử lý bất đồng bộ rất lộn xộn rất khó debug, còn với kotlin coroutine việc code đc viết như xử lý dồng bộ, từ trên
+xuống mà k cần phải có bất kỳ cú pháp đặc biệt nào ngoài việc sử dụng 1 hàm launch - hàm này giúp khởi động coroutine.
+- Function xử lý task bất đồng bộ đc viết giống task xử lý đồng bộ chỉ khác là trong function có chứa từ khoá suspend.
+- Có thể return bất kỳ giá trị nào mà chúng ta mong muốn.

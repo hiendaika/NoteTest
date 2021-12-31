@@ -6,7 +6,8 @@
     app:startDestination="@id/fm_dashboard">
     <fragment
         android:id="@+id/fm_dashboard"
-        tools:layout="@layout/fragment_dashboard">
+        tools:layout="@layout/fragment_dashboard"
+        android:name="com.example.supernotes.view.dashboard.DashboardFragment">
         <action
             android:id="@+id/action_dashboard_to_add_note"
             app:destination="@+id/fm_add_note" />
@@ -16,12 +17,14 @@
 
     <fragment
         android:id="@+id/fm_add_note"
-        tools:layout="@layout/fragment_add_note">
+        tools:layout="@layout/fragment_add_note"
+        android:name="com.example.supernotes.view.add.AddNoteFragment">
 
     </fragment>
     <fragment
         android:id="@+id/fm_detail"
-        tools:layout="@layout/fragment_detail_note">
+        tools:layout="@layout/fragment_detail_note"
+        android:name="com.example.supernotes.view.detail.DetailNoteFragment">
 
     </fragment>
 </navigation>

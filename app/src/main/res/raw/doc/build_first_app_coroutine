@@ -1,0 +1,31 @@
+I. Những điểm cần chú ý
+- Coroutine giống như 1 light-weight thread, nhưng mà k phải là thread.
+- Nó giống thread ở chỗ các coroutine có thể chạy // cùng nhau, đợi nhau và trao đổi dữ liệu vs nhau.
+- Sự khác biệt lớn nhất giữa chúng đó là so với thread coroutine rất rẻ, gần như free, chúng ta có thể chạy hàng
+ngàn coroutine mà gần như k ảnh hưởng đến performance.
+- 1 thread có thể chạy coroutine.
+- Coroutine k phải lúc nào cũng chạy trên background, chúng cũng có thể chạy trên mainthread.
+
+II. Build first coroutine with kotlin
+- Add các thư viện coroutine vào dependencies trong build.gradle
+    implementation <org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1<
+    implementation <org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1<
+- 1 coroutine đc cấu thành bởi các thành phần
+    GlobalScope.launch { // chạy một coroutine trên background thread
+            delay(10000L) // non-blocking coroutine bị delay 10s
+            println("World,") // print từ World ra sau khi hết delay
+        }
+        println("Hello,") // main thread vẫn tiếp tục chạy xuống dòng code này trong khi coroutine vẫn đang bị delay 10s
+        Thread.sleep(20000L) // block main thread 2s
+        println("Kotlin")
+=> Output của đoạn
+    Hello,  // Giả sử Hello, được in ra ở giây thứ 1
+    World,  // thì từ World, sẽ được in ra ở giây thứ 11
+    Kotlin  // và từ Kotlin sẽ được in ra ở giây thứ 21
+    + Bên trong block launch{} chứa 1 coroutine được tạo ra và chạy.
++ Từ Hello được in ra trước do hàm delay nó k block mainthread nên mainthread vẫn chạy xuống dưới đoạn code in ra từ Hello
+trong khi đang delay 10s. Sau khi delay xong 10s nó sẽ in ra từ World, tiếp tục delay 10s nữa sẽ in ra từ Kotlin
++ Hàm delay nhìn có vẻ giống Thread.sleep() nhưng chúng rất khác nhau. Delay là 1 suspend function nên nó non-blocking
+thread còn hàm Thread.sleep thì blocking mainthread.
+
+III. Blocking với non-blocking/ normal function vs suspend function

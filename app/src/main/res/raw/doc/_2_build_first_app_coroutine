@@ -1,0 +1,113 @@
+I. Những điểm cần chú ý
+- Coroutine giống như 1 light-weight thread, nhưng mà k phải là thread.
+- Nó giống thread ở chỗ các coroutine có thể chạy // cùng nhau, đợi nhau và trao đổi dữ liệu vs nhau.
+- Sự khác biệt lớn nhất giữa chúng đó là so với thread coroutine rất rẻ, gần như free, chúng ta có thể chạy hàng
+ngàn coroutine mà gần như k ảnh hưởng đến performance.
+- 1 thread có thể chạy coroutine.
+- Coroutine k phải lúc nào cũng chạy trên background, chúng cũng có thể chạy trên mainthread.
+
+II. Build first coroutine with kotlin
+- Add các thư viện coroutine vào dependencies trong build.gradle
+    implementation <org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1<
+    implementation <org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1<
+- 1 coroutine đc cấu thành bởi các thành phần
+    GlobalScope.launch { // chạy một coroutine trên background thread
+            delay(10000L) // non-blocking coroutine bị delay 10s
+            println("World,") // print từ World ra sau khi hết delay
+        }
+        println("Hello,") // main thread vẫn tiếp tục chạy xuống dòng code này trong khi coroutine vẫn đang bị delay 10s
+        Thread.sleep(20000L) // block main thread 2s
+        println("Kotlin")
+=> Output của đoạn
+    Hello,  // Giả sử Hello, được in ra ở giây thứ 1
+    World,  // thì từ World, sẽ được in ra ở giây thứ 11
+    Kotlin  // và từ Kotlin sẽ được in ra ở giây thứ 21
+    + Bên trong block launch{} chứa 1 coroutine được tạo ra và chạy.
++ Từ Hello được in ra trước do hàm delay nó k block mainthread nên mainthread vẫn chạy xuống dưới đoạn code in ra từ Hello
+trong khi đang delay 10s. Sau khi delay xong 10s nó sẽ in ra từ World, tiếp tục delay 10s nữa sẽ in ra từ Kotlin
++ Hàm delay nhìn có vẻ giống Thread.sleep() nhưng chúng rất khác nhau. Delay là 1 suspend function nên nó non-blocking
+thread còn hàm Thread.sleep thì blocking mainthread.
+
+III. Blocking với non-blocking/ normal function vs suspend function
+3. Blocking vs non-blocking / Normal function vs suspend function
+a. Blocking:
+   - Vi du doan code su dung normal function:
+     fun functionA() { println("in ra A") }
+     fun functionB() { println("in ra B") }
+     fun main() {
+         // chạy functionA và functionB
+         functionA()
+         functionB()
+     }
+
+   - Phan tich doan code tren:
+    + FunctionA, functionB duoc goi trong main
+    + Mainthread se lan luot chay functionA xong sau do se chay functionB.
+   + Cac dong lenh duoc chay 1 cach tuan tu tu tren xuong duoi. Nghia la cac dong lenh ben duoi phai cho cho den khi cac
+    dong lenh phia tren duoc thuc thi xong.
++ Neu cac thao tac lenh phia truoc ma thuc thi mat nhieu thoi gian nhu xu ly du lieu I/O hoac lam viec voi Network thi no se tro thanh
+can tro voi cac lenh thuc thi di sau, mac du logic cua chung k lien quan gi den nhau (hoan toan co the xu ly doc lap).
++ Vi du ta co 2 function get thong tin may va get tat ca cac video trong may:
+  fun main() {
+      getVideos() // Giả sử hàm này chạy mất hết 2 phút
+      getInfo() // phải đợi hàm getVideos chạy xong mới được chạy trong khi hàm này chẳng liên quan gì đến getVideos
+      updateUiInfo()
+  }
+=> Nhu vay ng dung can phai doi it nhat 2 phut moi co the lay duoc thong tin va update.
+
+b. Non-blocking
+- Cac dong lenh k nhat thiet luc nao cung phai thuc hien tuan tu(sequential) va dong bo(synchronous) voi nhau.
+- Cac dong lenh phia sau duoc goi ngay sau khi cac dong lenh phia truoc duoc goi ma khong can doi cho toi khi cac dong lenh phia truoc chay xong.
+- De thuc hien Non-blocking co the su dung nhieu cach khac nhau nhung co ban van la dung nhieu thread khac nhau trong cung 1 process, hoac
+tham chi co the nhieu process khac nhau de thuc hien.
+=> Coroutine co the chay non-blocking. Non-blocking nhung k can phai dua vao viec tao nhieu thread. Trong 1 thread co the chay nhieu coroutine
+cung co the chay mo hinh non-blocking.
+
+c. Suspend function
+- Suspend function co kha nang ngung hay gian doan viec thuc thi 1 lat(trang thai ngung la trang thai suspend) va co the tiep tuc thuc thi
+khi can thiet.
+- Suspend function duoc danh dau bang tu khoa suspend:
+  suspend fun sayHello() {
+      delay(1000L)
+      println("Hello!")
+  }
+- Chi co the goi suspend function ben trong 1 suspend function khac.
++ delay la 1 suspend function va duoc goi trong 1 suspend function la sayHello.
+
+4. Run blocking voi Coroutine.
+- De coroutine co the chay blocking ta su dung tu khoa runBlocking{} - tuong tu nhu block launch{}. Ben trong runBlocking{}
+cung la 1 coroutine dc ta va chay.
+  runBlocking { // chạy một coroutine
+      println("Hello")
+      delay(5000)
+  }
+  println("World")
+  => Ket qua in ra
+  Output: 22:00:20 I/System.out: Hello
+  22:00:25 I/System.out: World
+  Tu World dc in sau tu Hello khoang 5s <=> dieu nay nghia la mainthread da bi block trong khoang 5s, sau khi delay 5s no moi chay xuong dong
+lenh in ra tu world.
+Co the viet lai nhu sau:
+  private fun main() = runBlocking {
+    println("Hello")
+    delay(5000)
+  }
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    main()
+    println("World")
+  }
+
+5. Coroutine la thread nho gon.
+- VD: Chung minh coroutine nhe so voi thread. Tao function chay 100000 coroutine // va ta tinh tong thoi gian chay xong
+  val time = measureTimeMillis { main() }
+  Log.d("hehehe", "time = $time ms")
+  fun main() = runBlocking {
+    repeat(100_000) { // launch 100_000 coroutines
+      launch {
+        Log.d("hehehe", "hello")
+      }
+    }
+  }
+=> Output la 7129 ms

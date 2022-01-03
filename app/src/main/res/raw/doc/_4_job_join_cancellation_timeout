@@ -1,0 +1,248 @@
+IV. Job, Join, Cancellation va Timeout
+1. Job - 1 element trong coroutine
+- Giu nhiem vu nam giu thong tin lifecycle cua coroutine, cancel coroutine.
+- Moi khi launch 1 coroutine thi no tra ve 1 doi tuong Job nay.
+
+2. Function Join - Doi coroutine thuc thi xong
+- Su dung Job de thuc hien 1 so method co san trong coroutine. Vd ham join().
+- Khi 1 coroutine goi ham Join() thi tien trinh phai doi coroutine nay chay xong task roi moi chay tiep.
+- VD:
+  fun main() = runBlocking {
+    val job = GlobalScope.launch { // launch a new coroutine and keep a reference to its Job
+      delay(5000L)
+      println("World!")
+    }
+    println("Hello,")
+    job.join() // wait until child coroutine completes
+    println("Kotlin")
+  }
+=> Output:
+  22:07:20 I/System.out: Hello
+  22:07:25 I/System.out: World
+  22:07:25 I/System.out: Kotlin
++ Dau tien in ra Hello, sau do coroutine dc goi. Coroutine nay thuc thi delay 5s roi print ra tu world.
++ Sau khi coroutine chay xong thi tiep tuc chay xuong doan code de in ra tu Kotlin
+
+3. Function Cancel - Huy bo 1 coroutine
+- De dung va huy bo 1 coroutine dang chay ta su dung ham cancel cua Job.
+  fun main() = runBlocking {
+    val job = launch {
+      repeat(1000) { i ->
+        println("I<m sleeping $i ...")
+        delay(500L)
+      }
+    }
+    delay(1300L) // delay a bit
+    println("main: I<m tired of waiting!")
+    job.cancel() // cancels the job
+    println("main: Now I can quit.")
+  }
+=> Output:
+  I<m sleeping 0 …
+  I<m sleeping 1 …
+  I<m sleeping 2 …
+  main: I<m tired of waiting!
+  main: Now I can quit.
++ In ra cau I<m sleeping sau 500ms khoang 1k lan
++ Delay khoang 1300s roi cancel coroutine. Vay la sau 1300ms no in ra dc 3 dong.
+
+4. Chu y khi loai bo 1 coroutine.
+4.1. Huy bo coroutine la 1 su hop tac
+- VD cancel 1 coroutine
+  fun main() = runBlocking {
+    val startTime = System.currentTimeMillis()
+    val job = launch(Dispatchers.Default) {
+      var nextPrintTime = startTime
+      var i = 0
+      while (i < 5) {
+        if (System.currentTimeMillis() >= nextPrintTime) {
+          println("job: I<m sleeping ${i++} ...")
+          nextPrintTime += 500L
+        }
+      }
+    }
+    delay(1300L) // delay a bit
+    println("main: I<m tired of waiting!")
+    job.cancel() // cancels the job
+    println("main: Now I can quit.")
+  }
+
+=> Output
+  job: I<m sleeping 0 ...
+  job: I<m sleeping 1 ...
+  job: I<m sleeping 2 ...
+  main: I<m tired of waiting!
+  main: Now I can quit.
+  job: I<m sleeping 3 ...
+  job: I<m sleeping 4 ...
++ Doan code trong coroutine xu ly viec in ra cau I<m sleeping sau moi 500ms khoang 5 lan.
++ Doan code sau do xu ly viec cancel coroutine.
++ le ra output ra chi dc 3 dong nhu vd tren (vi thoi gian delay chi 1300ms) nhung no van print ra 5 lan
++ huy bo coroutine co tinh hop tac (co-operative).
++ Khi 1 coroutine bi cancel thi no se chi set lai 1 property co ten la isActive trong doi tuong Job tu true -> false (job.isActive = false)
+con tien trinh cua no dang chay thi van chay cho den het ma k bi dung lai.
++ Doan code trong phan 3 tien trinh cua coroutine duoc huy bo thanh cong. Do la do ham delay(500L) ngoai chuc nang delay no con co
+check chuc nang coroutine con song hay k, neu k con song(job.isActive == false) thi no se huy bo tien trinh cua coroutine do ngay va luon.
++ Tat ca cac ham cua suspend function trong package kotlinx.coroutine deu co chuc nang nay.
+
+- Su dung property isActive de check coroutine con song hay k
+  fun main() = runBlocking {
+      val startTime = System.currentTimeMillis()
+      val job = launch(Dispatchers.Default) {
+          var nextPrintTime = startTime
+          var i = 0
+          while (isActive) {   // Điều kiện i < 5 đã được thay bằng isActive để ngăn chặn coroutine khi nó đã bị hủy
+              if (System.currentTimeMillis() >= nextPrintTime) {
+                  println("job: I<m sleeping ${i++} ...")
+                  nextPrintTime += 500L
+              }
+          }
+        }
+      delay(1300L) // delay a bit
+      println("main: I<m tired of waiting!")
+      job.cancel() // cancels the job
+      println("main: Now I can quit.")
+      }
+=> Output
+  job: I<m sleeping 0 ...
+  job: I<m sleeping 1 ...
+  job: I<m sleeping 2 ...
+  main: I<m tired of waiting!
+  main: Now I can quit.
++ Check dk isActive(kiem tra coroutine con song hay k) de no huy viec print ra cac dong Im...
+
+4.2. Su dung khoi finally de close resource ngay ca khi coroutine da bi huy bo.
+- Neu tien trinh cua 1 coroutine bi huy bo ngay lap tuc no se tim den khoi finally de chay code trong do.
+- Co the su dung dac diem nay de tranh thu close het cac resource truoc khi coroutine do chinh thuc bi khai tu
+  fun main() = runBlocking {
+      val job = launch {
+          try {
+              repeat(1000) { i ->
+              println("I<m sleeping $i ...")
+              delay(500L)
+              }
+              } finally {
+              // Tranh thủ close resource trong này đi nha :D
+              println("I<m running finally")
+          }
+      }
+      delay(1300L) // delay a bit
+      println("main: I<m tired of waiting!")
+      job.cancel() // cancels the job
+      println("main: Now I can quit.")
+  }
+=> Output
+  I<m sleeping 0 ...
+  I<m sleeping 1 ...
+  I<m sleeping 2 ...
+  main: I<m tired of waiting!
+  main: Now I can quit.
+  I<m running finally
++ Cuoi cung van in ra I<m running finally
+
+4.3. Coroutine van co the chet trong khoi finally
+- De khoi delay() trong khoi finally
+  fun main() = runBlocking {
+      val job = launch {
+          try {
+              repeat(1000) { i ->
+                  println("I<m sleeping $i ...")
+                  delay(500L)
+              }
+          } finally {
+              println("I<m running finally")
+              delay(1000L)                      // hàm delay được thêm vào khối finally
+              println("Print me please!")
+          }
+      }
+      delay(1300L) // delay a bit
+      println("main: I<m tired of waiting!")
+      job.cancel() // cancels the job
+      println("main: Now I can quit.")
+  }
+=> Output
+  I<m sleeping 0 ...
+  I<m sleeping 1 ...
+  I<m sleeping 2 ...
+  main: I<m tired of waiting!
+  main: Now I can quit.
+  I<m running finally
++ Khi de delay(1000L) trong finally thi no check xem coroutine da dong hay chua nen no se dung tien trinh neu nhu coroutine k con song.
+Do do no k chay dong lenh in ra "Print...."
+
+4.4 Lam cho coroutine chay mai
+- Su dung 1 element cua coroutine context la NonCancellable
+  fun main() = runBlocking {
+      val job = launch {
+          try {
+              repeat(1000) { i ->
+              println("I<m sleeping $i ...")
+              delay(500L)
+              }
+          } finally {
+              withContext(NonCancellable) {  // Nhờ có em NonCancellable mà anh được phép chạy bất chấp đấy
+                  println("I<m running finally")
+                  delay(1000L)
+                  println("I<m non-cancellable")
+              }
+          }
+      }
+      delay(1300L) // delay a bit
+      println("main: I<m tired of waiting!")
+      job.cancel() // cancels the job
+      println("main: Now I can quit.")
+  }
+
+=> Output
+    I<m sleeping 0 ...
+    I<m sleeping 1 ...
+    I<m sleeping 2 ...
+    main: I<m tired of waiting!
+    main: Now I can quit.
+    I<m running finally
+    I<m non-cancellable
++ Chu y NonCancellable va ham withContext()
++ Ham withContext co tac dung dieu chinh lai context cua coroutine.
++ Coroutine khi moi dc tao ra thi no co default la Cancellable(co the huy dc) nhung sau do neu ta muon dieu chinh no lai
+thanh NonCancellable(k the huy duoc) thi withContext se giup ta thuc hien viec do.
++ withContext() co the coi nhu 1 coroutine thuc thi task duoi background thread(Dispatchers.IO) va sau do khi task chay xong
+thi cho no chay tiep tren mainthread(Dispatchers.Main) de update UI.
++ NonCancellable la 1 element trong tap Context cua coroutine. No co tac dung giup coroutine song mai, k thu gi co the dong no cho
+den khi no hoan thanh task
+
+5. Timeout - cho coroutine chết bằng cách hẹn giờ
+- VD: Thiết lâpj coroutine thực thi task trong 10s nếu chưa xong thì dừng coroutine.
+    fun main() = runBlocking {
+        withTimeout(1300L) {
+            repeat(1000) { i ->
+                println("I<m sleeping $i ...")
+                delay(500L)
+            }
+        }
+    }
+=> Output
+    I<m sleeping 0 ...
+    I<m sleeping 1 ...
+    I<m sleeping 2 ...
+    Exception in thread "main" kotlinx.coroutines.TimeoutCancellationException: Timed out waiting for 1300 ms
++ Xuất hiện exception, vì hàm withTimeOut() khi thấy hết thời gian timeout mà coroutien vẫn chưa xử lý xong task
+thì nó sẽ bắn ra exception TimeoutCancellationException, nghĩa là sẽ k có Exception nào bắn ra nếu như
+coroutine thực hiện xong task trước thời gian timeout.
+- Ngoài ra ta có hàm withTimeoutOrNull(truyền_vào_khoảng_thời_gian_đơn_vị_ms) có công dụng như hàm withTimeOut()
+nhưng k mạnh bằng. Thay vì ném ra ngoại lệ TimeoutCancellationException thì hàm withTimeoutOrNull() sẽ trả về null
+khi thời gian timeOut hết và coroutine vẫn chưa thực hiện xong task.
+    fun main() = runBlocking {
+        val result = withTimeoutOrNull(1300L) {
+            repeat(1000) { i ->
+                    println("I<m sleeping $i ...")
+                delay(500L)
+            }
+            "Done" // will get cancelled before it produces this result
+        }
+        println("Result is $result")                // Biến result sẽ null
+    }
+=> Output
+    I<m sleeping 0 ...
+    I<m sleeping 1 ...
+    I<m sleeping 2 ...
+    Result is null

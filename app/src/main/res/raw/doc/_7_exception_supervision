@@ -1,0 +1,200 @@
+VII. Xu ly Exception trong Coroutine, Supervision Job, Supervision Scope.
+1. Exception trong Kotlin Coroutine
+VD: Exception voi launch
+    runBlocking {
+          GlobalScope.launch {
+               println("Throwing exception from launch")
+               throw IndexOutOfBoundsException()
+               println("Unreached")
+          }
+    }
+=> Output
+    Throwing exception from launch
+    Exception in thread "DefaultDispatcher-worker-2 @coroutine#2" java.lang.IndexOutOfBoundsException
+    Throwing exception from async
+    Caught ArithmeticException
+- Coroutine nem ra exception la IndexOutOfBoundsException nen dong "Unreached" k dc in ra.
+
+- Exception vs async
+    val deferred = GlobalScope.async {
+        println("Throwing exception from async")
+        throw ArithmeticException()
+        println("Unreached")
+    }
+=> Output
+    Throwing exception from async
+Coroutine k nem ra ngoai le nhung coroutine van stop va dong "Unreached" van k dc in ra
+
+- Them await
+    val deferred = GlobalScope.async {
+         println("Throwing exception from async")
+         throw ArithmeticException()
+         println("Unreached")
+    }
+    deferred.await()
+=> Output
+    Throwing exception from async
+    Exception in thread "DefaultDispatcher-worker-2 @coroutine#2" java.lang.ArithmeticException
+- ArithmeticException duoc nem ra khi goi await.
+=> launch{} gap exception thi throw ra luon, con async {} khi gap exception thi no dong goi exception vao bien Deffered
+chi khi nao Deffered goi await thi no moi show ra exception.
+
+2. Catch Exception
+- fun testException() = runBlocking {
+          GlobalScope.launch {
+              try {
+                  Log.d("Module7","Throwing exception from launch")
+                  throw IndexOutOfBoundsException()
+                  Log.d("Module7","Unreached")
+              } catch (e: IndexOutOfBoundsException) {
+                  Log.d("Module7","Caught IndexOutOfBoundsException")
+              }
+          }
+
+          val deferred = GlobalScope.async {
+              Log.d("Module7","Throwing exception from async")
+              throw ArithmeticException()
+              Log.d("Module7","Unreached")
+          }
+          try {
+              deferred.await()
+              Log.d("Module7","Unreached")
+          } catch (e: ArithmeticException) {
+              Log.d("Module7","Caught ArithmeticException")
+          }
+      }
+=> Output
+    Throwing exception from launch
+    Caught IndexOutOfBoundsException
+    Throwing exception from async
+    Caught ArithmeticException
+
+3. CoroutineExceptionHandler
+- Dc su dung nhu 1 generic catch block cua coroutine.
+    val handler = CoroutineExceptionHandler { _, exception ->
+        println("Caught $exception")
+    }
+    val job = GlobalScope.launch(handler) {
+        throw AssertionError()
+    }
+    val deferred = GlobalScope.async(handler) {
+        throw ArithmeticException() // Nothing will be printed, relying on user to call deferred.await()
+    }
+    joinAll(job, deferred)
+=> Output
+    Caught java.lang.AssertionError
+- CoroutineExceptionHandler k the cathc dc nhung exception dong goi vao bien Deferred.
+- K the catch dc cac exception trong goi runBlocking{}
+
+
+4. Tong hop nhieu Exception
+- Neu nhu co nhieu con cua coroutine nem ra exception
+- Khi coroutine nem ra exception thi coroutine cung se bi dung.
+- Exception nao xay ra dau tien thi no se dc tra ve trong CoroutinetExceptionHandler.
+- Khi exception xay ra, coroutine bi stop thi no se co chay khoi lenh trong finally. Neu trong finally cung nem ra ngoai le
+thi tat ca cac exception trong khoi finally se bi suppressed. In ra bang lenh exception.getSuppressed().
+    fun main() = runBlocking {
+        val handler = CoroutineExceptionHandler { _, exception ->
+            println("Caught $exception with suppressed ${exception.suppressed.contentToString()}")
+        }
+        val job = GlobalScope.launch(handler) {
+            launch {
+                try {
+                    delay(Long.MAX_VALUE) // delay vô hạn
+                } finally {
+                    throw ArithmeticException()
+                }
+            }
+            launch {
+                try {
+                    delay(Long.MAX_VALUE) // delay vô hạn
+                } finally {
+                    throw IndexOutOfBoundsException()
+                }
+            }
+            launch {
+                delay(100)
+                throw IOException()
+            }
+            delay(Long.MAX_VALUE)
+        }
+        job.join()
+    }
+=> Output
+    Caught java.io.IOException with suppressed [java.lang.ArithmeticException, java.lang.IndexOutOfBoundsException]
+
+5. Supervision Job
+- Khi 1 coroutine con xay ra exception thi cac coroutine con cung se bi stop.
+- De tranh tinh trang tren tuc la khi coroutine con bi loi ma cac coroutine khac van dc chay va chi khi UI bi destroy thi
+no moi dung cac Coroutine. Khi do ta su dung SupervisorJob() thay vi Job().
+VD:
+    fun testSupervisorJob() = runBlocking {
+            val supervisor = SupervisorJob()
+            with(CoroutineScope(coroutineContext + supervisor)) {
+                // launch the first child -- its exception is ignored for this example (don<t do this in practice!)
+                val firstChild = launch(CoroutineExceptionHandler { _, _ -> }) {
+                    Log.d("Module7", "First child is failing")
+                    throw AssertionError("First child is cancelled")
+                }
+                // launch the second child
+                val secondChild = launch {
+                    firstChild.join()
+                    // Cancellation of the first child is not propagated to the second child
+                    Log.d(
+                        "Module7",
+                        "First child is cancelled: ${firstChild.isCancelled}, but second one is still active"
+                    )
+                    try {
+                        delay(Long.MAX_VALUE)
+                    } finally {
+                        // But cancellation of the supervisor is propagated
+                        Log.d("Module7", "Second child is cancelled because supervisor is cancelled")
+                    }
+                }
+                // wait until the first child fails & completes
+                firstChild.join()
+                Log.d("Module7", "Cancelling supervisor")
+                supervisor.cancel()
+                secondChild.join()
+            }
+        }
+=> Output
+    First child is failing
+    First child is cancelled: true, but second one is still active
+    Cancelling supervisor
+    Second child is cancelled because supervisor is cancelled
+First child bi huy nhung second child van active va tiep tuc chay.
+
+6. Supervisor Scope
+- Co the su dung SupervisorScope de thay the SupervisorJob de launch Coroutine.
+VD:
+    //    Supervisor Scope
+        fun testSupervisorScope() = runBlocking {
+            val handler = CoroutineExceptionHandler { _, exception ->
+                Log.d("Module7", "Caught $exception")
+            }
+            supervisorScope {
+                val first = launch(handler) {
+                    Log.d("Module7", "Child throws an exception")
+                    throw AssertionError()
+                }
+                val second = launch {
+                    delay(100)
+                    Log.d("Module7", "Scope is completing")
+                }
+            }
+            Log.d("Module7", "Scope is completed")
+        }
+=> Output
+    Child throws an exception
+    Caught java.lang.AssertionError
+    Scope is completing
+    Scope is completed
+- First child xay ra exception nhung second child van chay
+- Supervisor scope cung giong CoroutineScope, no huy tat ca cac coroutine con khi chinh ban than no da bi cancel hoac
+xay ra exception
+- Cho doi cac coroutine con hoan thanh xong truoc khi no dc hoan thanh.
+- Khi su dung supervisorScope thi moi coroutine con nen tu xu ly cac exception gap phai thong qua CoroutineExceptionHandler
+hoac catch exception thu cong boi vi cac exception nay xay ra trong cac coroutine con thuoc supervisorScope k dc
+truyen den coroutine cha.
+

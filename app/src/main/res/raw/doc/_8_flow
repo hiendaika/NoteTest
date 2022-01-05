@@ -1,0 +1,6 @@
+VIII. FLOW
+1. Gioi thieu Flow
+- Flow kha giong Sequences nhung Sequences xu ly dong bo, con Flow xu ly bat dong bo.
+a. Collection va Sequences vs Flow
+- Xay dung function foo bang cach su dung Collection, Sequences, Flow va do thoi gian thuc thi cua chung
+VD1: Function su dung collection

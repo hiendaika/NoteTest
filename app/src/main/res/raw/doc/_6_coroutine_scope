@@ -1,0 +1,161 @@
+VI. Coroutine Scope
+1. Coroutine Scope
+- Khi chay 10 coroutine thuc thi 10 task trong 1 Activity. Khi Activity bi destroy, cac result cua cac task tren k con can
+thiet nua. Lam sao de stop cac coroutine tren de tranh tinh trang memory leaks.
+- Coroutine cung cap doi tuong de quan ly vong doi cua cac coroutine la CoroutineScope
+- Khai bao CoroutineScope bang cach khoi tao 1 instance cua class CoroutineScope(context: CoroutineContext). Bien Context dc
+truyen vao CoroutineScope dc su dung lam Coroutine Context cho toan bo Coroutine dc launch trong cung Scope do.
+- VD trong anh dang chay 3 Coroutine trong cung 1 Scope su dung Context gom Dispatchers.IO => Ca 3 Coroutine deu chay voi
+Dispatchers.IO
+- Cung co the tao 1 Scope bang cach factory function nhu MainScope(). MainScope mac dinh su dung Dispathcers.Main
+    @Suppress("FunctionName")
+    fun MainScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+- Cac coroutine builder nhu launch{} hay async{} deu la extension function cua lop CoroutineScope. Chinh vi vay k the goi cac
+function launch{} va async{} ben ngoai 1 CoroutineScope.
+- runBlocking k phai extension function cua CoroutineScope ma no nhan CoroutineScope nhu 1 tham so truyen vao nen no co the
+dc goi ben ngoai CoroutineScope. Nho no nhan CoroutineScope nhu 1 param truyen vao nen no tao ra 1 scope de co the chay dc cac
+Coroutine trong do.
+- K the launch 1 Coroutine neu no k co Scope <=> Ngoai vung CoroutineScope thi k the launch Coroutine nao ca.
+
+2.Cac dac diem cua CoroutineScope
+ CoroutineScope co cac dac diem can luu y sau:
+- Khi 1 Coroutine A dc launch trong CoroutineScope cua Coroutine B khac thi A la con cua B. Coroutine con se su dung Context va Scope
+cua cha. Neu Coroutine con khai bao 1 Scope, Context rieng thi no uu tien su dung Context va Scope cua rieng no thay vi su dung cua cha.
+- 1 coroutine cha luon cho doi de tat ca Coroutine con cua no chay xong
+    fun testScope() = runBlocking { // scope 1
+            launch {       // coroutine 1
+                delay(200L)
+                Log.d("Module6","Task from runBlocking")   // line code 1
+            }
+
+            coroutineScope { // coroutine 2   // scope 2
+                launch {   // coroutine 3
+                    delay(500L)
+                    Log.d("Module6", "testScope:Task from nested launch") // line code 2
+                }
+
+                delay(100L)
+                Log.d("Module6","Task from coroutine scope") // line code 3
+            }
+
+            Log.d("Module6","Coroutine scope is over") // line code 4
+        }
+=> Output
+    2022-01-05 13:53:02.956 2826-2826/com.example.supernotes D/Module6: Task from coroutine scope
+    2022-01-05 13:53:03.057 2826-2826/com.example.supernotes D/Module6: Task from runBlocking
+    2022-01-05 13:53:03.357 2826-2826/com.example.supernotes D/Module6: testScope:Task from nested launch
+    2022-01-05 13:53:03.357 2826-2826/com.example.supernotes D/Module6: Coroutine scope is over
+- Coroutine Builder coroutineScope{} cung chay tuan tu nhu runBlocking{}, chi khac la no la suspend function nen chi co the tao
+ra ben trong 1 suspend function khac hoac trong 1 CoroutineScope.
+- Giai thich doan code tren:
++ Cac code ben trong runBlocking{} dc chay tuan tu tren xuong duoi. Khi no chay coroutine 1, trong coroutine 1 co delay 200ms
+nhung runBlocking se k cho ma chay xuong de launch tiep Coroutine 2.
++ Trong coroutine 2 lai launch 1 coroutine con goi la coroutine 3. Nhung ca 2 coroutine 2,3 deu co delay, le ra runBlocking phai
+chay xuong dong code cuoi va in ra nhung thuc te lai k, dong code do dc in ra cuoi cung.
++ Boi vi trong cung 1 Scope do runBlocking{} tao ra (scope 1) thi ban than no phai cho tat ca cac dua con cua no (coroutine 1,2,3)
+chay xong roi moi chay code cua no. Vay nen line code 3 bi delay 100ms nen dc print ra dau tien, tiep sau do la print ra line code 1
+va line code2.
+
+- Khi coroutine cha bi huy thi tat ca cac coroutine con cua no cung bi huy theo.
+    fun cancelParent() = runBlocking<Unit> {
+            val request = launch {
+                launch {
+                    delay(100)
+                    Log.d("Module6","job2: I am a child of the request coroutine")   // line code 1
+                    delay(1000)
+                    Log.d("Module6","job2: I will not execute this line if my parent request is cancelled") // line code 2
+                }
+            }
+            delay(500)
+            request.cancel() // cancel processing of the request
+            delay(1000)
+            Log.d("Module6","main: Who has survived request cancellation?") // line code 3
+        }
+=> Output:
+    job2: I am a child of the request coroutine
+    main: Who has survived request cancellation?
+- Giai thich doan code tren:
++ Sau 100ms thi dong line code 1 se dc in ra, roi sau do phai doi 1000ms sau thi line code 2 moi duoc in ra.
++ Trong khi do sau 500ms dau tien thi coroutine cha da bi cancel nen no se cancel cac coroutine cua no. Vi vay line code 2
+se k duoc in ra.
+
+3. GlobalScope
+- GlobalScope la 1 coroutine scope
+    fun testGlobalScope() = runBlocking<Unit> {
+            val request = launch {
+                // it spawns two other jobs, one with GlobalScope
+                GlobalScope.launch {
+                    Log.d("Module6","job1: GlobalScope and execute independently!")
+                    delay(1000)
+                    Log.d("Module6","job1: I am not affected by cancellation")  // line code 1 này vẫn được in ra mặc dù bị delay 1000ms
+                }
+                // and the other inherits the parent context
+                launch {
+                    delay(100)
+                    Log.d("Module6","job2: I am a child of the request coroutine")
+                    delay(1000)
+                    Log.d("Module6","job2: I will not execute this line if my parent request is cancelled")
+                }
+            }
+            delay(500)
+            request.cancel() // cancel processing of the request
+            delay(1000) // delay a second to see what happens
+            Log.d("Module6","main: Who has survived request cancellation?")
+    }
+=> Output
+    job1: GlobalScope and execute independently!
+    job2: I am a child of the request coroutine
+    job1: I am not affected by cancellation
+    main: Who has survived request cancellation?
+- Giai thich:
++ Khi cancel coroutine cha thi cac Coroutine con se bi huy tuy nhien neu coroutine con do co scope la GlobalScope thi no se k
+bi cancel khi coroutine cha bi pha huiy. Vi vay line code 1 van duoc in ra mac du no bi delay 1000ms.
+
+4. Su dung Coroutine Scope de quan ly lifecylce cua application
+- Tat ca cac coroutine deu phai bi huy khi Activity, Fragment, ViewModel bi huy de tranh xay ra tinh trang memory leaks. Vi vay
+nen su dung CoroutineScope de quan ly vong doi cua Activity, Fragment, ViewModel.
+- Khi Activity bi destroy thi cancel coroutine scope bang cancel().
+    class Activity : CoroutineScope by CoroutineScope(Dispatchers.Default) {
+       fun destroy() {
+           cancel() // Extension on CoroutineScope
+       }
+       fun doSomething() {
+           // launch ten coroutines for a demo, each working for a different time
+           repeat(10) { i ->
+               launch {
+                   delay((i + 1) * 200L) // variable delay 200ms, 400ms, ... etc
+                   println("Coroutine $i is done")
+               }
+           }
+       }
+    }
+
+- Khi viewModel bi clear thi cancel coroutine scope
+    class MyViewModel constructor(private val apiService : ApiService) : ViewModel(), CoroutineScope {
+
+      private val job = Job()
+
+      override val coroutineContext: CoroutineContext get() = job + Dispatchers.Main
+
+      fun executeCalls() {
+         launch(context = coroutineContext) {
+              val firstRequestDeferred = async {
+                   apiService.request1()
+              }
+              val secondRequestDeffered = async {
+                   apiService.request2()
+              }
+              handleResponse(firstRequestDeferred,await(),secondRequestDeffered.await())
+         }
+      }
+
+      override fun onCleared(){
+          job.cancel()
+      }
+    }
+
+5. viewModelScope
+- Khi them vao dependency cua build.gradle o app thi trong moi ViewModel deu co san 1 scope la viewModelScope su dung Dispatchers.Main
+Khi viewModel bi clear thi viewModelScope se tu dong cancel tat ca coroutine ma k can minh xu ly.
+    implementation "androidx.lifecycle.lifecycle-viewmodel-ktx$lifecycle_version"
+

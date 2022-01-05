@@ -29,3 +29,76 @@ V. Phan 5 Async va await
 + Su dung ham measureTimeMillis de do ket qua thuc hien bai toan nay khi su dung 1 coroutine duy nhat.
 + Neu su dung moi coroutine khac nhau thi se nhanh hon nhung do coroutine thi kieu tra ve cua no la Job
 chu k phai kieu Int
+- Ngoai dung runBlocking va GlobalScope.launch{} de run coroutine - tra ve kieu Job ta co the dung doi tuong khac de launch coroutine
+va k tra ve kieu Job la async.
+
+2. Su dung async de launch coroutine.
+- VD:
+    fun main() = runBlocking {
+        val int: Deferred<Int> = async { printInt() }
+        val str: Deferred<String> = async { return@async "Sun" }
+        val unit: Deferred<Unit> = async { }
+
+        println("Int = ${int.await()}")
+        println("String = ${str.await()}")
+    }
+
+    fun printInt(): Int {
+        return 10
+    }
+- Async cung giong nhu runBlocking{} va GlobalScope.launch{} vi no cung dung de launch 1 coroutine, diem khac biet la async cho phep return ve 1 kieu gia tri
+Int, String, Unit, ... con runBlocking{} va GlobalScope.launch{} return ve kieu Job ma Job chi quan ly lifecycle cua Coroutine chu k mang
+duoc ket qua gi
+- Defferred<T>: Khi return kieu Int trong khoi block thi kieu tra ve async la Defferred<Int>, tra ve kieu String la Deffered<String>,
+k return gi ca thi la Deffered<Unit> . Deffered cung tuong tu nhu Job no cung co kha nang quan ly lifecylce cua Coroutine nhung khac Job
+la no mang theo duoc ket qua tra ve. Va khi get gia tri ra ta can su dung ham await().
+- Await(): La 1 member function cua Deffered dung de get gia tri ket qua tra ve. VD bien kieu Deffered<Int> thi goi ham await() se tra ve gia tri
+kieu Int.
+=> Bai toan duoc xu ly
+    fun sum2Number() = runBlocking {
+            val time = measureTimeMillis {
+                val one = async { printOne() }
+                val two = async { printTwo() }
+                Log.d("Module5", "Sum: ${one.await() + two.await()}")
+            }
+            Log.d("Module5", "Time: ${time}")
+        }
+
+    suspend fun printOne(): Int {
+        delay(1000L)
+        return 10
+    }
+
+    suspend fun printTwo(): Int {
+        delay(1000L)
+        return 12
+    }
+=> Output 2022-01-05 10:26:47.349 3195-3195/com.example.supernotes D/Module5: Sum: 22
+          2022-01-05 10:26:47.349 3195-3195/com.example.supernotes D/Module5: Time: 1052
+Thuc hien phep toan chi mat khoang > 1s nhan hon khi su dung chung 1 coroutine.
+
+3. Lazy Async
+    fun sum2NumberWithLazy() = runBlocking {
+            val time = measureTimeMillis {
+                val one = async(start = CoroutineStart.LAZY) { printOne() }
+                val two = async(start = CoroutineStart.LAZY) { printTwo() }
+                one.start() // start thang one
+                two.start() // start thang two
+                Log.d("Module5", "Sum: ${one.await() + two.await()}")
+            }
+            Log.d("Module5", "Time: ${time}")
+        }
+- Su dung Async kieu Lazy thi Coroutine se k chay ngay. No se chi chay code trong Block khi co lenh tu ham Start. De khai bao kieu
+async la Lazy thi can truyen CoroutineStart.Lazy vao param start trong ham async.
+=> Output
+    2022-01-05 10:52:39.532 3381-3381/com.example.supernotes D/Module5: Sum: 22
+    2022-01-05 10:52:39.533 3381-3381/com.example.supernotes D/Module5: Time: 1035
+
+- Neu khi su dung async kieu Lazy ma k goi ham start() thi thoi gian thuc thi se lau hon
+=> Output:
+    2022-01-05 10:54:49.907 3476-3476/com.example.supernotes D/Module5: Sum: 22
+    2022-01-05 10:54:49.907 3476-3476/com.example.supernotes D/Module5: Time: 2016
++ Khi su dung async kieu Lazy ma k goi ham start thi luc nay Coroutine se chay tuan tu. Dong
+Log.d("Module5", "Sum: ${one.await() + two.await()}") se chay tuan tu, nghia la no goi one.await() truoc roi sau khi thuc thi xong no
+moi goi two.await().
+

@@ -4,3 +4,222 @@ VIII. FLOW
 a. Collection va Sequences vs Flow
 - Xay dung function foo bang cach su dung Collection, Sequences, Flow va do thoi gian thuc thi cua chung
 VD1: Function su dung collection
+    suspend fun fooCollection(): List<Int> {
+            val list = mutableListOf<Int>()
+            for (i in 1..3) {
+                delay(1000)
+                list.add(i)
+            }
+
+            return list
+        }
+    Function tinh toan thoi gian thuc thi
+    fun calculateTime() = runBlocking {
+            val time = measureTimeMillis {
+                fooCollection().forEach { value -> Log.d("Module8", "Time: $value") }
+            }
+            Log.d("Module8", "calculateTime: $time")
+        }
+=> Output:
+    2022-01-08 22:41:44.542 7929-7929/com.example.supernotes D/Module8: Time: 1
+    2022-01-08 22:41:44.543 7929-7929/com.example.supernotes D/Module8: Time: 2
+    2022-01-08 22:41:44.543 7929-7929/com.example.supernotes D/Module8: Time: 3
+    2022-01-08 22:41:44.543 7929-7929/com.example.supernotes D/Module8: calculateTime: 3057
++ Thoi gian thuc thi la 3057ms
+
+- Xay dung funtion foo voi Sequences
+    fun fooSequences(): Sequence<Int> = sequence{
+             for (i in 1..3){
+                 Thread.sleep(1000)
+                 yield(i)
+             }
+         }
++ Funtion tinh toan thoi gian thuc thi
+    fun calculateTime() = runBlocking {
+            val time = measureTimeMillis {
+                fooSequences().forEach { value -> Log.d("Module8", "Time: $value") }
+            }
+            Log.d("Module8", "calculateTime: $time")
+        }
+=> Output:
+    2022-01-09 00:10:30.747 8278-8278/com.example.supernotes D/Module8: Time: 1
+    2022-01-09 00:10:31.748 8278-8278/com.example.supernotes D/Module8: Time: 2
+    2022-01-09 00:10:32.748 8278-8278/com.example.supernotes D/Module8: Time: 3
+    2022-01-09 00:10:32.748 8278-8278/com.example.supernotes D/Module8: calculateTime: 3013
++ Thoi gian thuc thi cung tuong tu nhung khac nhau la thang List doi add xong ca 3 phan tu roi moi in
+ra, con thang Sequence thi cu moi giay thi co phan tu duoc yield va phan tu do dc in ra ngay ma k phai
+doi yield xong ca 3 phan tu.
++ Ve co ban Flow kha giong Sequence, thay vi su dung yield thi Flow su dung ham emit thay vi su dung
+ham collect.
+
+2. So sanh Flow vs Sequence
+- Sequence block mainthread.
+- Viet 1 ham de so sanh giua flow va sequnces
+//Flow vs Sequence
+    //FooSequence va coroutine se cung chay //
+    fun coroutineVsSequence() = runBlocking {
+        // Chay 1 coroutine de kiem tra xem mainthread co bi block hay k
+        launch {
+            //Kiem tra thread dang chay
+            Log.d("Module8", Thread.currentThread().name)
+            for (k in 1..3) {
+                delay(1000)
+                Log.d("Module8", "I<m blocked $k")
+            }
+        }
+        val time = measureTimeMillis {
+            fooSequences().forEach { value -> Log.d("Module8", "$value") }
+        }
+        Log.d("Module8", "$time s")
+    }
+=> Output
+    2022-01-09 03:24:34.361 9127-9127/com.example.supernotes D/Module8: 1
+    2022-01-09 03:24:35.435 9127-9127/com.example.supernotes D/Module8: 2
+    2022-01-09 03:24:36.445 9127-9127/com.example.supernotes D/Module8: 3
+    2022-01-09 03:24:36.445 9127-9127/com.example.supernotes D/Module8: 3098 s
+    2022-01-09 03:24:36.463 9127-9127/com.example.supernotes D/Module8: main
+    2022-01-09 03:24:37.467 9127-9127/com.example.supernotes D/Module8: I<m blocked 1
+    2022-01-09 03:24:38.469 9127-9127/com.example.supernotes D/Module8: I<m blocked 2
+    2022-01-09 03:24:39.474 9127-9127/com.example.supernotes D/Module8: I<m blocked 3
++ Dua vao ket qua in ra ta thay dc Sequnces da block mainthread nen 3 dong i'm blocked phai cho
+Sequences in xong 3 gia tri truoc thi nó moi duoc in ra
+
+- Function de test flow
+    fun coroutineVsFlow() = runBlocking {
+        //Chay coroutine de kiem tra main thread co bi block hay k
+        launch {
+            Log.d("Module8", Thread.currentThread().name)
+            for (i in 1..3) {
+                delay(1000)
+                Log.d("Module8", "I'm blocked $i")
+            }
+        }
+        //Collect flow
+        val time = measureTimeMillis {
+            fooFlow().collect { value ->
+                Log.d("Module8", "$value")
+            }
+        }
+        Log.d("Module8", "$time s")
+    }
+=> Output
+    2022-01-09 05:26:34.375 9578-9578/com.example.supernotes D/Module8: main
+    2022-01-09 05:26:35.381 9578-9578/com.example.supernotes D/Module8: 1
+    2022-01-09 05:26:35.382 9578-9578/com.example.supernotes D/Module8: I'm blocked 1
+    2022-01-09 05:26:36.383 9578-9578/com.example.supernotes D/Module8: 2
+    2022-01-09 05:26:36.383 9578-9578/com.example.supernotes D/Module8: I'm blocked 2
+    2022-01-09 05:26:37.383 9578-9578/com.example.supernotes D/Module8: 3
+    2022-01-09 05:26:37.383 9578-9578/com.example.supernotes D/Module8: 3019 s
+    2022-01-09 05:26:37.384 9578-9578/com.example.supernotes D/Module8: I'm blocked 3
++ Nhu ket qua output ra ta thay flow k block mainthread, bang chung la cac so 1,2,3 dc in ra // vs
+dong I'm not bloked
++ Tom lai Sequence xu ly dong bo. No su dung Iterator va block mainthread trong khi cho doi item tiep
+theo dc yield. Flow xu ly bat dong bo. No su dung 1 suspend function collect de block mainthread
+trong khi cho doi item tiep theo dc emit.
+
+c. Flow
+Giai thich cac dong code cua Flow
+- Khoi Flow {} la 1 builder function giup ta tao 1 doi tuong Flow.
+- Code ben trong Flow {...} co the suspend, dieu nay co nghia chung ta co the goi cac suspend function
+trong khoi flow {}. Vi vay function fooFlow() goi khoi flow {} k can thiet phai goi suspend function
+- Ham emit dung de emit cac gia tri flow. Ham nay la suspend function.
+- Ham collect dung de get gia tri dc emit tu ham emit. Ham nay cung la suspend function.
+
+2. Flow la nguon du lieu lanh
+Cac flow la cac luong lanh(cold stream) tuong tu nhu cac sequence. Dieu do co nghia la code ben trong
+flow{} se k chay cho den khi goi ham collect.
+    // Khi goi ham collect thi flow moi dc chay
+    fun flowIsColdStream(): Flow<Int> = flow {
+        Log.d("Module8", "Flow started")
+        for (i in 1..3) {
+            delay(1000)
+            emit(i)
+        }
+
+    }
+
+    fun testFlowIsColdStream() = runBlocking {
+        Log.d("Module8", "Test Flow is Cold Stream....")
+        var flowIsColdStream: Flow<Int> = flowIsColdStream()
+        Log.d("Module8", "Flow is Collecting....")
+        flowIsColdStream.collect { value -> Log.d("Module8", "Value: $value") }
+        Log.d("Module8", "Calling Flow Again...")
+        flowIsColdStream.collect { value -> Log.d("Module8", "Value: $value") }
+    }
+=> Output:
+    2022-01-09 06:21:34.791 9823-9823/com.example.supernotes D/Module8: Test Flow is Cold Stream....
+    2022-01-09 06:21:34.829 9823-9823/com.example.supernotes D/Module8: Flow is Collecting....
+    2022-01-09 06:21:34.838 9823-9823/com.example.supernotes D/Module8: Flow started
+    2022-01-09 06:21:35.847 9823-9823/com.example.supernotes D/Module8: Value: 1
+    2022-01-09 06:21:36.855 9823-9823/com.example.supernotes D/Module8: Value: 2
+    2022-01-09 06:21:37.858 9823-9823/com.example.supernotes D/Module8: Value: 3
+    2022-01-09 06:21:37.868 9823-9823/com.example.supernotes D/Module8: Calling Flow Again...
+    2022-01-09 06:21:37.868 9823-9823/com.example.supernotes D/Module8: Flow started
+    2022-01-09 06:21:38.869 9823-9823/com.example.supernotes D/Module8: Value: 1
+    2022-01-09 06:21:39.870 9823-9823/com.example.supernotes D/Module8: Value: 2
+    2022-01-09 06:21:40.871 9823-9823/com.example.supernotes D/Module8: Value: 3
++ De y khi tao 1 variable la flowIsColdStream thi luc nay doan code trong Flow chua dc chay. Chi den
+khi ta goi collect() thi no moi chay. Va code do se chay lai khi ta goi lai ham collect().
+
+3. Flow Cancellation
+Flow tuan thu theo cac quy tac cancellation chung cua coroutine.
+- Viec collect cua flow chi co the b huy khi va chi khi flow dang chay bi suspend (chang han nhu gap delay)
+va ngc lai flow k the bi huy.
+- Vd flow bi cancel khi het thoi gian timeout. Ta su dung withTimeoutNotNull
+//VD Flow cancellation.
+    fun fooFlowCancel(): Flow<Int> = flow {
+        for(i in 1..3){
+            delay(2000)
+            Log.d("Module8","Emit $i")
+            emit(i)
+        }
+    }
+    fun testFlowCancellation() = runBlocking {
+        withTimeoutOrNull(5000){
+            //Timeout sau 5s
+            fooFlowCancel().collect {
+                value -> Log.d("Module8","$value")
+            }
+        }
+        Log.d("Module8","Done")
+    }
+=> Output
+    2022-01-09 06:42:25.990 9969-9969/com.example.supernotes D/Module8: Emit 1
+    2022-01-09 06:42:25.992 9969-9969/com.example.supernotes D/Module8: 1
+    2022-01-09 06:42:27.993 9969-9969/com.example.supernotes D/Module8: Emit 2
+    2022-01-09 06:42:27.993 9969-9969/com.example.supernotes D/Module8: 2
+    2022-01-09 06:42:28.150 9969-9969/com.example.supernotes D/Module8: Done
++ sau 4s thi log dc 1,2 con sau 5s thi het thoi gian timeout ma flow dang bi suspend vi ham delay(2000)
+<=> con 1s nua tuc la den giay thu 6 thi moi het suspend nen flow bi cancel va so 3 k dc in ra
++ Khi thay delay(2000) bang Thread.sleep(2000) thi flow k bi huy do no k bi suspend nen no van in ra
+cac so 1,2,3.
+=> Vay flow k the bi cancel khi dang chay hay noi cach khac la khi no k o trang thai suspend.
+
+4. Cac cách để tạo ra Flow
+Ngoài cách sử dụng flow {} như các doạn code trên ta có thể dùng các cách khác để tạo ra Flow.
+a. Hàm flowOf
+    public fun <T> flowOf(vararg elements: T): Flow<T>
+    fun main() = runBlocking {
+        val data = flowOf(1,"abc", 3.4, "def")
+        data.collect { println(it) }
+    }
+=> Output
+    2022-01-09 16:17:04.687 11826-11826/com.example.supernotes D/createFlowUsingFlowOf: Hello
+    2022-01-09 16:17:04.687 11826-11826/com.example.supernotes D/createFlowUsingFlowOf: 3.14
+    2022-01-09 16:17:04.687 11826-11826/com.example.supernotes D/createFlowUsingFlowOf: 10
+
+b. .asFlow extension function
+Cac collections, Array, Sequneces hay 1 kieu T  nao do deu co the convert sang flow thong qua extendsion
+function la .asFlow(). Vd:
+    fun createFlowUsingAsFlowExtemsions() = runBlocking {
+        val list = listOf(1, "Data", 3.14)
+        val data = list.asFlow()
+        data.collect { value ->
+            Log.d("createFlowUsingAsFlow", "$value")
+        }
+    }
+=> Output:
+    2022-01-09 16:24:01.263 11929-11929/com.example.supernotes D/createFlowUsingAsFlow: 1
+    2022-01-09 16:24:01.263 11929-11929/com.example.supernotes D/createFlowUsingAsFlow: Data
+    2022-01-09 16:24:01.263 11929-11929/com.example.supernotes D/createFlowUsingAsFlow: 3.14
+

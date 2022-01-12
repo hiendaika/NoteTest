@@ -5,6 +5,9 @@ import android.os.Bundle
 import android.util.Log
 import com.example.supernotes.R
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import java.io.IOException
 import kotlin.system.measureTimeMillis
 
@@ -30,7 +33,11 @@ class TestActivity : AppCompatActivity() {
 //        testSupervisorScope()
 
 //        MODULE 8: FLOW
-        calculateTime()
+//        calculateTime()
+//        coroutineVsSequence()
+//        coroutineVsFlow()
+//        testFlowIsColdStream()
+        testFlowCancellation()
     }
 
     fun sayHello() = runBlocking {
@@ -279,15 +286,110 @@ class TestActivity : AppCompatActivity() {
 
         return list
     }
-    //Su dung
+
+    //Su dung Sequences
+    fun fooSequences(): Sequence<Int> = sequence {
+        for (i in 1..3) {
+            Thread.sleep(1000)
+            yield(i)
+        }
+    }
+
+    //Su dung Flow
+    fun fooFlow(): Flow<Int> = flow {
+        //Flow builder giup tao ra 1 doi tuong flow
+        // Code ben trong la suspend nen ta co the goi suspend function trong nay
+        for (i in 1..3) {
+            Log.d("Module8", "Flow started")
+            delay(1000)
+            //Emit cac gia tri tu flow
+            emit(i)
+        }
+    }
 
     //    tinh toan thoi gian thuc hien
     fun calculateTime() = runBlocking {
         val time = measureTimeMillis {
-            fooCollection().forEach { value -> Log.d("Module8", "Time: $value") }
+//            fooCollection().forEach { value -> Log.d("Module8", "Time: $value") }
+//            fooSequences().forEach { value -> Log.d("Module8", "Time: $value") }
+            fooFlow().collect { value -> Log.d("Module8", "Time: $value") }
         }
-        println(time)
+        Log.d("Module8", "calculateTime: $time")
     }
 
 
+    //Flow vs Sequence
+    //FooSequence va coroutine se cung chay //
+    fun coroutineVsSequence() = runBlocking {
+        // Chay 1 coroutine de kiem tra xem mainthread co bi block hay k
+        launch {
+            //Kiem tra thread dang chay
+            Log.d("Module8", Thread.currentThread().name)
+            for (k in 1..3) {
+                delay(1000)
+                Log.d("Module8", "I<m blocked $k")
+            }
+        }
+        val time = measureTimeMillis {
+            fooSequences().forEach { value -> Log.d("Module8", "$value") }
+        }
+        Log.d("Module8", "$time s")
+    }
+
+    fun coroutineVsFlow() = runBlocking {
+        //Chay coroutine de kiem tra main thread co bi block hay k
+        launch {
+            Log.d("Module8", Thread.currentThread().name)
+            for (i in 1..3) {
+                delay(1000)
+                Log.d("Module8", "I'm blocked $i")
+            }
+        }
+        //Collect flow
+        val time = measureTimeMillis {
+            fooFlow().collect { value ->
+                Log.d("Module8", "$value")
+            }
+        }
+        Log.d("Module8", "$time s")
+    }
+
+    //Flow la nguon du lieu lanh
+    // Khi goi ham collect thi flow moi dc chay
+    fun flowIsColdStream(): Flow<Int> = flow {
+        Log.d("Module8", "Flow started")
+        for (i in 1..3) {
+            delay(1000)
+            emit(i)
+        }
+
+    }
+
+    fun testFlowIsColdStream() = runBlocking {
+        Log.d("Module8", "Test Flow is Cold Stream....")
+        var flowIsColdStream: Flow<Int> = flowIsColdStream()
+        Log.d("Module8", "Flow is Collecting....")
+        flowIsColdStream.collect { value -> Log.d("Module8", "Value: $value") }
+        Log.d("Module8", "Calling Flow Again...")
+        flowIsColdStream.collect { value -> Log.d("Module8", "Value: $value") }
+    }
+
+    //VD Flow cancellation.
+    fun fooFlowCancel(): Flow<Int> = flow {
+        for (i in 1..3) {
+            delay(2000)
+            Log.d("Module8", "Emit $i")
+            emit(i)
+        }
+    }
+
+    fun testFlowCancellation() = runBlocking {
+        withTimeoutOrNull(5000) {
+            //Timeout sau 5s
+            fooFlowCancel().collect { value ->
+                Log.d("Module8", "$value")
+            }
+        }
+        Log.d("Module8", "Done")
+    }
 }

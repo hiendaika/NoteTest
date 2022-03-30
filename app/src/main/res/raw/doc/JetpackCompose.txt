@@ -1,0 +1,313 @@
+Jetpack Compose => Stream chat API
+- Rebuild CTR + SHIFT + F5 
+I. Gioi thieu
+- Cong cu de phat trien ung dung android.
+- Khong can su dung file layout,
+- Co the de dang khoi tao tat ca cac view bang cach su dung kotlin code.
+- VD: Tao recyclerview, theo cach cu ta su dung 2 file xml va 1 class adapter. Chung ta su dung file xml cho activity hoac fragment. Va file xml khac 
+de su dung cho danh sach cac item. Sau do, ta can code nhieu trong class adapter.
+	+ Su dung Jetpack Compose cho ket qua tuong tu ma chi can su dung 1 class Kotlin don gian 
+	
+II. Cai dat project su dung Jetpack Compose
+1. Cai dat project
+- Su dung Android Studio phien ban Arctic Fox hoac cao hon. 
+- File -> New Project -> Empty Compose Activity.
+- Set version thap nhat de chay app la Android 21 hoac cao hon.
+- Mo project thiet lap kotlin version 1.5.10 hoac cao hon.
+- Mo class MainActivity.kt, click icon build refresh se thay ui ban dau cua MainActivity.
+
+2. Cac thanh phan su dung trong class MainActivity.kt
+* K co file layout dc su dung:
+- Trong MainActivity se k co ham setContentView(R.layout.activity_main) - loai bo file layout cua MainActivity.
+- setContentView dc thay the bang ham setContent(). 
+
+* Theme.kt
+- MyFirstComposeTheme la 1 theme dc khoi tao trong project. Ten cua no tuong tu voi ten project+theme. 
+
+* Surface
+- Su dung Material Surface. Co the su dung no de cung cap cac surface chung de view cac thanh phan.
+- Co the thiet lap cac thuoc tinh chung nhu background color, border, elevation. 
+
+* Composable functions
+- Trong Jetpack Compose, thanh phan UI la 1 function don gian voi annotation composable.
+- K nhu ten cac function khac, ten cac function nay dc bat dau bang ky tu hoa.
+- VD: Trong khoi setContent ta su dung 1  function la "Greeting".
+- Muc tieu cua ham Greeting la hien thi doan text "Hello Android" tren man hinh.
+- De thuc hien dc viec do ta can thuc thi ham Text().
+- Text() la 1 function cua Jetpack Compose.
+- Khi thuc thi 1 compose function nhu tren, thu vien Jetpack Compose se su dung custom Kotlin compiler plugin de chuyen doi no thanh phan UI.
+- Tat ca Jetpack compose function deu la composable function.
+
+* Preview function
+- Android Studio cho phep chung de xem truoc UI ma k can mo emulator hoac ket noi den device.
+- Doi voi tat ca ta can khoi tao 1 composable function(k co parameter) va annotate bang cach su dung @Preview.
+- Sau do thuc thi cac composable function khac tu no de xem truoc 1 cach truc tiep.
+- Co the cap nhat ban xem truoc tai bat cu thoi diem noa bang cach click vao button refresh o phie tren cua cua so preview.
+
+* Composable function dc dinh nghia ben ngoai class(MainActivity.kt)
+- Trong vd tren ta thay co 2 function dc dinh nghia ben ngoai MainActivity.kt.
+- Trong kotlin, dieu nay la kha thi, khi ta dinh nghia cac function ben ngoai class. Chung dc goi la package level function.
+- Dinh nghia chung la package level function, ta co the tai su dung chung 1 cach hieu qua.
+
+* Hien thi text bang cach su dung Jetpack Compose.
+- Thuc thi function Text() trong ham onCreate cua Activity.
+
+II. Modifier
+- Modifier va cac tham so khac giup chung ta trang tri va them cac hanh vi vao cac thanh phan cua Jetpack Compose. 
+- Theo cach cu thi ta co the dinh nghia cac view trong file xml cung nhu cacc thuoc tinh cua no(width, heigh, color, margin, ...)
+- De them cac thuoc tinh trong trong compose function Text. Co the them vao trong function composable Text cac thuoc tinh:
+	+ fontSize: Co chu(.sp)
+	+ color: Mau chu
+	+ fontFamily: Font chu.
+	+ fontWeight: Kieu chu dam, nghieng, ...
+	+ textAlign: Can chinh chu.
+	...
+
+* Modifier trong Jetpack Compose
+- Cac tham so su dung o tren, xac dinh cac thanh phan UI. 
+- Them cac tham so dac biet co ten la modifier. Cac modifier cho phep ta xac dinh composable nen dc trinh dien, Co 4 
+dieu can lam voi cac modifier:
+	+ Su dung modifier de trang tri, them cac hanh vi cho thanh phan Composable UI.
+	+ Su dung chung cho tien trinh ng dung nhap lieu.
+	+ Co the tao cac thanh phan UI tuong tac (clickable, zoomable, draggable, scrollable) su dung cac modifier.
+	+ Su dung cac modifier de them thong tin vao thanh phan UI.
+- Them padding, border cho Text bang cach su dung Modifier factory extension.
+
+* Thu tu cac Modifier
+- Khi them cac Modifier vao thanh phan UI Jetpack compose, thu tu them chung la vo cung quan trong.
+- VD: thay doi thu tu modifier cua border va padding se thay su khac biet trong 2 truong hop. 
+- Modifier fillMaxWidth: Chieu rong cua view (1f - fullscreen chiue rong).
+- Modifier fillMaxHeight: Chieu cao cua view.(1f - fullscreen chieu cao).
+
+III. Column layout
+- Khi su dung cac Composable function de paht nhieu hon 1 thanh phan UI, nen cung cap huong dan lam the nao de sap xep chung. Neu k chung se chong len nhau
+- Co 3 cach don gian de sap xep cac thanh phan UI.
+	+ Column
+	+ Row
+	+ Box
+- Su dung Column de dat cac item theo chieu doc tren man hinh.
+- Su dung Row de sap xep cac thanh phan Ui theo chieu ngang cua man hinh.
+- Su dung Box de dua cac thanh phan len phia tren thanh phan khac, voi 1 vai dieu khien.
+- Neu co chua Row va Column thi no giong nhu LinearLayout.
+
+* Arrangement va Alignment
+- De thiet lap vi tri cac item voi 1 column, co the su dung cac tham so verticalArrangment, va horizontalAlignment.
+- Tuong tu de thiet lap cac vi tri voi 1 Row, ta co horizontalArrangement va verticalAlignment.
+- 1 column la 1 layout ma o do cac item con cua no sap xep tuan tu theo chieu doc.
+
+* Vertical arrangemnt
+- Co 6 cach sap xep theo chieu doc. Co the truyen chung nhu 1 doi so vao trong function Column.
+	+ Arrangement.Center: Can giua theo chieu doc.
+	+ Arrangement.Bottom: Can ve phia canh duoi cua man hinh.
+	+ Arrangement.SpaceAround: Cac view dau va cuoi cach deu hai canh cua may va bang nua cac khoang cach khac. (Cac thanh phan ben trong cung cach deu nhau theo chieu cao neu 
+so luong > 2)
+	+ Arrangement.SpaceBetween: Dan deu khoang cach giua cac item (2 item dau va cuoi luon nam sat canh cua man hinh).
+	+ Arrangement.SpaceEvenly: Dan deu khoang cach giua cac item bang khoang cach tu 2 item dau vao cuoi voi canh man hinh.
+	+ Arrangement.Top: Cac thanh phan dc sap xep bat dau tu canh tren cua man hinh.
+	
+* Horizontal Alignment
+- Xep item theo chieu ngang man hinh. Co 3 gia tri dinh nghia san:
+	+ Alignment.Start: Item dc can theo canh trai cua man hinh.
+	+ Alignment.End: Item dc can theo canh phai cua man hinh.
+	+ Alignment.CenterHorizontally: Item dc can giua theo chieu ngang cua man hinh.
+	
+IV. Row Layout
+* Tuong tu nhu Comlumn layout thi row layout co 6 gia tri dinh nghia cho viec sap xep theo chieu ngang va 3 gia tri cho viec sap xep theo chieu doc.
+- Cac item trong 1 row nen dc sx theo chieu tu trai qua phai.
+- Horizontal Arrangement:
+	+ Arrangement.Start: Item dc sap xep tu trai sang phai
+	+ Arrangement.Center: Item dc can giua man hinh theo chieu ngang.
+	+ Arrangement.End: Item dc can ve canh phai man hinh.
+	+ Arrangement.SpaceEvenly: Cac item dc dan deo theo chieu ngang vs khoang cach deu giua chung va canh man hinh
+	+ Arrangement.SpaceAround: Cac item dau va cuoi co khoang cach bang nua khoang cach giua cac item.
+	+ Arrangement.SpaceBetween: Cac item dc dan deu theo chieu ngang, item dau va cuoi nam o 2 canh cua man hinh (so luong item >2, k co khoang cach trc
+	item dau va sau item cuoi),
+- Vertical alignment:
+	+ Alignment.Top: Cac item nam phia canh tren cua man hinh(Mac dinh)
+	+ Alignment.Center: Cac item nam giua theo chieu doc
+	+ Alignment.Bottom: Cac item nam ve phia cuoi cua man hinh theo chieu doc.
+	
+* Ket hop giua arrangement va alignment
+- VD: Sap xep cac item nam o phia canh duoi cua man hinh va khoang cach giua cac item bang nhau:
+	+ Ket hop bang cach su dung horizontalArrangement.SpaceEvenly + verticalAlignment.Bottom.
+	
+V. Box Layout
+- Co the su dung Alignment de dat cac item o cac vi tri khac nhau trong box layout cha.
+
+* Alignment cua thanh phan con trong 1 box layout. Co 9 gia tri chinh.
+- Alignment.TopStart: Mac dinh item se nam o phia tren va ben trai cua man hinh.
+- Alignment.TopEnd: item nam ben phai phia tren cua man hinh.
+- Alignment.TopCenter: item nam phia tren va o giua theo  chieu ngang cua man hinh.
+- Alignment.CenterStart: item nam giua theo chieu doc ben canh trai man hinh
+- Alignment.Center: item nam chinh giua man hinh
+- Alignment.CenterEnd: item nam giua theo chieu doc ben canh phai man hinh
+- Alignment.BottomStart: item nam phia duoi canh trai man hinh
+- Alignment.BottomCenter: item nam canh duoi giua man hinh theo chieu ngang
+- Alignment.BottomEnd: item 
+
+
+VI. Button 
+* Standart Button
+- Button Jetpack Compose co 2 thuoc tinh bat buoc la OnClick va Text.
+	+ OnClick se duoc goi khi ng dung click vao button. 
+	+ Text dc su dung de hien thi text tren button.
+- VD: Toast message khi click vao button. De lam vay theo thu tu ta can lay duoc Context. 
+	+ Trong Jetpack Compose ta su dung LocalContext.current de lay ve Context (lay ben ngoai button). k khai bao cac bien ben trong compose function
+	+ Su dung context lay dc truyen vao Toast
+	
+* Disable button
+- Mac dinh cac button o trang thai enable. Trong Jetpack co the disable button bang cach set gia tri thuoc tinh enabled = false.
+- Disable button de k show toast khi click vao button.
+
+* Text Button
+- La 1 button k co background va border. 
+
+* Outlined Button
+- Khac TextButton o cho la no co them 1 duong bao ben ngoai button.
+
+* IconButton
+- Cho phep click vao icon 
+- Su dung IconButton de bieu dien hanh dong vi du nhu refresh, download, upload, delete. 
+- Thay the cho Text, no co thanh phan Icon. Icon gom 2 thuoc tinh bat buoc la image va content description.
+	+ image co the su dung painter, hoac anh vector boi Android Studio. 
+- Icon button thuong lay anh co kich thuoc 48x48, tuy nhien ta co the thay doi chung. Add mau cho iconbutton, sau do tang sai bang cach su dung modifier.
+
+* Demo tong hop cac button
+- Tong hop cac loai button: Button, TextButton, OutlinedButton, IconButton.
+
+* Customized Button
+- Doi khi chung ta can tuy chinh button de tuong thich voi theme 
+
+Khi voi cac giao dien phuc tap can custom
+
+VII. RecyclerView(Lazy Column)
+
+9. RadioButton (arrangement: sap xep, alignment: can chinh)
+- Cac thuoc tinh cua Radio Button: 
+	+ Selected: Thuoc tinh de cho lua chon 1 RadioButton.
+	+ onClick: Thuoc tinh su dung khi 1 RadioButton dc click.
+	+ modifier: Add cac padding cho RadioButton.
+- Cach implement:
+	+ Tao cac du lieu ban dau (list cac label cho RadioButton).
+	+ Tao bien kieu danh sach, 1 bien the hien gia tri text da lua chon, 1 bien event.
+	+ Tao Row de hien thi cho tung RadioButton. Set cac thuoc tinh (click, selected,...) cho RadioButton 
+	
+10. SplashScreen
+- Man hinh bieu trung cho ung dung, the hien icon hoac text ....
+
+11. TextView
+- Cac thuoc tinh cua TextView:
+	+ text: Noi dung hien thi.
+	+ style: Thay doi style cua text
+	+ color: Mau text
+	+ fontSize: Co chu
+	+ fontWeight: thiet lap weight cho chu nhu chu dam, hoac them bat cu thu gi
+	+ fontStyle: thiet lap kieu chu nghieng.
+	+ fontFamily: Font chu.
+	+ letterSpacing: Khoang cach giua cac chu.
+	+ background: Mau nen cho text.
+	+ shadow: Do bong cho chu.
+	+ textAlign: thay doi can chinh chu cua textview.
+	+ modifier: add padding cho textview.
+	
+12. TopAppBar
+- Tuong tu nhu ActionBar widget thuong dung bieu dien ten app va 1 so hanh dong(option menu, ....) trong ung dung.
+- Thuoc tinh:
+	+ title: Tieu de cho action bar.
+	+ navigation: Su dung 1 icon de dieu huong hoac goi navigation drawer.
+	+ backgroundColor: Mau nen cho app top bar.
+	+ contentColor: Mau cho noi dung ben trong actionbar.
+	+ elevation: nang cao topbar.
+	
+13. Material Button.
+- 
+
+* NOTE:
+- Co 3 cach de khai bao 1 doi tuong MutableState trong Compose:
+	val mutableState = remember { mutableStateOf(default) }
+	var value by remember { mutableStateOf(default) }
+	val (value, setValue) = remember { mutableStateOf(default) }
+- Cac khai bao nay la tuong duong va cung cap duoi dang cu phap dac biet(syntax sugar) cho cac truong hop su dung khac nhau. Nen chon 1 
+cach tao de doc nhat trong compose
+- remember la 1 function don gian cua compose dung de luu tru trang thai hien tai cua bien khi ma trang thai thay doi. No rat huu ich 
+khi thay doi du lieu tu back-end hoac tu cac event nguoi dung neu co bat ky thanh phan UI nao thay doi trang thai cua danh sach.
+
+- Block init dc chay sau primary constructor(ham tao chinh) va chay truoc secondary constructor(ham tao thu cap).
+	VD:
+		class Sample(private var s : String) {
+			constructor(t: String, u: String) : this(t) {
+			this.s += u
+			}
+			init {
+				s += "B"
+			}
+		}
+		Sample("T","U")
+	=> Ket qua nhan duoc la TBU
+* Su khac nhau giua MVP va MVVM
+	- MVP: Cung cap cach de tiep can voi cau truc project. Ly do MVP dc su dung rong rai boi no cung cap tinh modun, kiem thu, va 
+de de maintaine code. No co 3 thanh phan chinh: 
+		+ Model: Lop de luu tru du lieu. Chiu trach nhieum xu ly logic (logic thuc su) va ket noi voi database cung nhu tang mang.
+		+ View: UI cung cap hinh anh truc quan cua du lieu va theo doi hanh dong cua nguoi dung de thong bao cho Presenter.
+		+ Presenter: Tim, nap du lieu tu Model va ap dung logic UI de quyet dinh nhung gi se dc hien thi. No quan ly trang thai cua View va thuc hien 
+		cac hanh dong nguoi dung dua vao duoc thong bao tu View.
+	- MVVM: Co vai diem tuong tu voi MVP nhung vai tro cua Presenter duoc thay the bang ViewModel. Hon nua han che cua MVP dc no giai quyet. No goi y 
+viec chia logic trinh bay du lieu(View, UI) tu logic nghiep vu loi la 1 phan cua ung dung. Gom 3 thanh phan chinh:
+		+ Model: Lop nay chiu trach nhiem ve su truu tuong cua nguon du lieu. Model va ViewModel lam viec cung nhau de lay va luu du lieu
+		+ View: Thong bao cho ViewModel ve cac action cua user. Lop nay quan sat ViewModel va k chua bat ky loai logic ung dung nao.
+		+ ViewModel: Hien thi cac luong du lieu lien quan den View. No phuc vu nhu 1 lien ket giua Model va View.
+		
+	- MVP giai quyet cac van de phu thuoc vao View bang cach su dung Presenter nhu 1 kenh ket noi giua Model va View.
+MVVM thi huong su kien nhieu hon vi no su dung lien ket du lieu va do do de dang tach logic nghiep vu cot loi khoi View.
+	- Moi quan he giua View va Presenter la moi quan he 1-1 (1 View - 1 Presenter). Trong khi do nhieu View co the map voi 
+1 ViewModel.
+	- Presenter co hieu biet ve View (View trong Presenter). MVVM k co tham chieu den View.
+	- Lop Model trong MVP tra ve phan hoi cua dau vao nguoi dung cho Presenter roi chuyen tiep den View. Trong MVVM thi sau khi thuc hien 
+cac dau vao nguoi dung thi lop Model tra ve cac phan hoi cho View.
+	- MVP Tao nhieu lop cung nhu code hon. Trong khi do MVVM tao nhieu class nhung it code hon cho tung class. 
+	- MVP ly tuong cho cac ung dung don gian va phuc tap. MVVM k phai y tuong tot cho cac du an quy mo nho.
+	- MVP de dang de thuc hien Unit Test nhung su rang buoc giua View va Presenter co the khien viec kho khan hon doi chut. Trong khi do 
+MVVM la kien truc de de dang trien khai kiem thu nhat.
+
+
+* BaseRecyc
+- BaseViewHolder: La abstract class co chua:
+	+ Ke thua class RecyclerView.ViewHolder
+	+ Ke thua interface de handle cac event khi ng dung click hay longclick (View.OnClickListener, View.OnLongClickListener).
+	+ Dang ky event trong block init{}
+	+ function bindData(item: Any)
+	
+- SectionRow: Class mo ta index cua data.
+	+ section: Int
+	+ row: Int
+	+ function nextRow()
+	+ function nextSection()
+
+- RecyclerViewPaginator
+	+ implement event onScrollListener 
+	+ isLoading: () -> Boolean: function check trang thai loading(khai bao trong constructor)
+	+ loadMore: () -> Unit: Function loadMore. (khai bao trong constructor)
+	+ onLast: () -> Boolean {true}: Function check co phai item cuoi hay k (khai bao trong constructor).
+	
+	+ threshold: Int = 10 - so phan tu tra ra trong 1 page
+	+ currentPage: Int = 0 - Page hien tai.
+	+ endWithAuto: Boolean = false - 
+	
+	+ Trong phuong thuc onScrolled can lay ra cac gia tri.
+		+ visibleItemCount: goi ham childCount - tra ve so luong item dang hien thi tren man hinh
+		+ totalItemCount: goiham itemCount - tra ve so luong item hien tai dang quan ly (all item).
+		+ lastVisibleItemPosition : Vi tri cuôi cung cua item dang hien thi. Tuy thuoc vao layoutManager dang quan ly.
+			+ Voi layoutManager la Linear hoac GridLayout thi giong nhau deu goi findLastVisibleItemPosition().
+			+ Voi kieu StaggeredGridLayout thi su dung findLastVisibleItemPosition(it.findLastVisibleItemPositions(null))
+	
+	+ function private fun findLastVisibleItemPosition(lastVisibleItems: IntArray): Int {
+		return lastVisibleItems.maxOfOrNull { it } ?: lastVisibleItems[0]
+	  }
+	
+	+ function resetCurrentPage() - set lai gia tri cho currentPage = 0
+	
+- BaseAdapter: 
+
+- Implement BaseRecyclerViewAdapter:
+
+

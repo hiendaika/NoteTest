@@ -15,8 +15,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SuperNotes">
         <activity
+            android:name=".coroutine.Main2Activity"
+            android:exported="false" />
+        <activity
             android:name=".coroutine.TestFlowActivity"
-            android:exported="true" >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -30,7 +33,7 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:exported="true"></activity>
+            android:exported="true" />
     </application>
 
 </manifest>

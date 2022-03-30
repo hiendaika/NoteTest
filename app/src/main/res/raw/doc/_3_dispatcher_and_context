@@ -5,7 +5,7 @@ III. Bai 3 Coroutine Context va Dispatcher
 a. Element
 - Cac loai Element trong coroutine gom:
 * Job: Nam giu thong tin ve lifecycle cua coroutine.
-* Dispatcher: Quyet ding thread ma coroutine se chay tren do. Co cac loai dispatcher sau:
+* Dispatcher: Quyet dinh thread ma coroutine se chay tren do. Co cac loai dispatcher sau:
 - Dispatchers.Main: Chay tren UI thread.
 - Dispatchers.IO: chay tren background thread cua thread pool. Thuong dung khi read, write files, database, Networking.
 - Dispatchers.Default: Chay tren background thread cua thread pool thuong dung khi sorting list, parse Json, DiffUtils.

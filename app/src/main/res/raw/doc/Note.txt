@@ -1,0 +1,59 @@
+I. Note App
+1. Cac tinh nang chinh cua note app
+- CRUD note.
+- Add file dinh kem (doc, audio, image,) cho note.
+- Tim kiem note theo tieu de.
+- Sap xep note theo thu tu moi nhat.
+- Trong 1 note cho phep tao cac check list.
+- Chuyen doi Dark mode <-> Day mode.
+- Them url.
+
+2. Model cua Note
+- id
+- title
+- check list.
+- file audio.
+- image.
+- description
+- create time.
+- create by.
+
+
+3. Setup project.
+- Khoi tao project
+- Tao cac package chua source code.
+- 
+
+navpage.do
+
+- Cross scope privilege check 
+
+global.call_03_04 script include
+
+UI Action: Create Problem 
+
+//Cac menu chinh trong Kotlin Coroutine
+I. What is coroutine?
+1. Single Thread
+- Khi ung dung dc khoi chay, he thong se tao ra 1 thread de thuc thi cho ung dung, dc goi la 'Main'.
+- Mot trong nhung trach nhiem quan trong nhat cua 'Main' la de gui di cac thong diep su kien den cac UI widget, bao gom cac drawing event.
+- Neu LTV thuc hien cac tac vu ton nhieu thoi gian nhu truy cap mang hay truy van database, se khien UI bi block. Doi khi ban se thay Dialog 'Application not responding' hien thi.
+- K dc block Main thread de user co the su dung dc ung dung.
+
+2. Asynchronous programing techniques.
+- Threading
+- Callback
+- Future/Promise
+- Reactive programing
+- Coroutine 
+
+3. 
+II. Main concepts: Suspend function, Coroutine Context, Job, Deferred, Coroutine Scope, Async, Launch(), SuperVisor Job, Global Scope.
+III. Cancellation.
+IV. Handle Exception.
+V. Single request and multiple request(concurrency).
+
+VI. Notezz App su dung Jetpack Compose
+- 
+
+

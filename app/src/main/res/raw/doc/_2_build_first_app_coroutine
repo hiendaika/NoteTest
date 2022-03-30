@@ -13,7 +13,7 @@ II. Build first coroutine with kotlin
 - 1 coroutine đc cấu thành bởi các thành phần
     GlobalScope.launch { // chạy một coroutine trên background thread
             delay(10000L) // non-blocking coroutine bị delay 10s
-            println("World,") // print từ World ra sau khi hết delay
+            println("World,") // print từ World ra sau khi hết delay 
         }
         println("Hello,") // main thread vẫn tiếp tục chạy xuống dòng code này trong khi coroutine vẫn đang bị delay 10s
         Thread.sleep(20000L) // block main thread 2s
@@ -54,7 +54,7 @@ can tro voi cac lenh thuc thi di sau, mac du logic cua chung k lien quan gi den 
       updateUiInfo()
   }
 => Nhu vay ng dung can phai doi it nhat 2 phut moi co the lay duoc thong tin va update.
-
+ 
 b. Non-blocking
 - Cac dong lenh k nhat thiet luc nao cung phai thuc hien tuan tu(sequential) va dong bo(synchronous) voi nhau.
 - Cac dong lenh phia sau duoc goi ngay sau khi cac dong lenh phia truoc duoc goi ma khong can doi cho toi khi cac dong lenh phia truoc chay xong.
@@ -104,7 +104,7 @@ Co the viet lai nhu sau:
   val time = measureTimeMillis { main() }
   Log.d("hehehe", "time = $time ms")
   fun main() = runBlocking {
-    repeat(100_000) { // launch 100_000 coroutines
+    repeat(100000) { // launch 100_000 coroutines
       launch {
         Log.d("hehehe", "hello")
       }

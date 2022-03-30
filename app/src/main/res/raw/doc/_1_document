@@ -99,7 +99,7 @@ c. Rx
                 // get được userDetail
             })
     }
-- Su dung rx kha ngan gon nhung thu vien Rx kha lon va kha kho su dung voi nhung ng moi
+- Su dung rx kha ngan gon nhung thu vien Rx kha lon va kha kho su dung voi nhung ng moi.
 
 d. Kotlin Couroutine
     fun getTokenAndLogin() {

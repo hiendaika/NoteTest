@@ -251,6 +251,10 @@ de de maintaine code. No co 3 thanh phan chinh:
 		+ View: UI cung cap hinh anh truc quan cua du lieu va theo doi hanh dong cua nguoi dung de thong bao cho Presenter.
 		+ Presenter: Tim, nap du lieu tu Model va ap dung logic UI de quyet dinh nhung gi se dc hien thi. No quan ly trang thai cua View va thuc hien 
 		cac hanh dong nguoi dung dua vao duoc thong bao tu View.
+		+ Han che cua MVP:
+			+ Giu tham chieu cua View trong Presenter
+			+ Moi quan he 1-1 giua View va Presenter.
+			+ 
 	- MVVM: Co vai diem tuong tu voi MVP nhung vai tro cua Presenter duoc thay the bang ViewModel. Hon nua han che cua MVP dc no giai quyet. No goi y 
 viec chia logic trinh bay du lieu(View, UI) tu logic nghiep vu loi la 1 phan cua ung dung. Gom 3 thanh phan chinh:
 		+ Model: Lop nay chiu trach nhiem ve su truu tuong cua nguon du lieu. Model va ViewModel lam viec cung nhau de lay va luu du lieu
